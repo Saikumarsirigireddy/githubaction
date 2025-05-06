@@ -25,6 +25,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: ${{ secrets.AWS_REGION }}
         AWS_ECR_REPO: ${{ secrets.AWS_ECR_REPO }}
+        IMAGE_TAG: ${{ github.sha }}
       run: |
         export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
         export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
@@ -32,10 +33,10 @@ jobs:
         aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_ECR_REPO
 
     - name: Build Docker Image
-      run: docker build . --file Dockerfile --tag $AWS_ECR_REPO:latest
+      run: docker build . --file Dockerfile --tag $AWS_ECR_REPO:$IMAGE_TAG
 
     - name: Tag Docker Image for ECR
-      run: docker tag $AWS_ECR_REPO:latest $AWS_ECR_REPO:latest
+      run: docker tag $AWS_ECR_REPO:$IMAGE_TAG $AWS_ECR_REPO:$IMAGE_TAG
 
     - name: Push Image to Private ECR
-      run: docker push $AWS_ECR_REPO:latest
+      run: docker push $AWS_ECR_REPO:$IMAGE_TAG
