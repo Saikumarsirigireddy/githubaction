@@ -2,7 +2,7 @@
 FROM public.ecr.aws/lambda/python:3.8
 
 # Copy application files
-COPY app.py . 
+COPY demo.py . 
 
 # Install dependencies
 RUN pip install rich
