@@ -1,33 +1,41 @@
----
-name: Build and Push Golang Image to AWS ECR
+name: Build and Push to Private ECR
+
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
+
 jobs:
   build-and-push:
-    name: Build and Push to ECR
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
-
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-
-    - name: Build, Tag, and Push the Image to Amazon ECR
-      id: build-image
-      env:
-        ECR_REGISTRY: ${{ secrets.AWS_ECR_REPO }}
-        ECR_REPOSITORY: githubactions1
-        IMAGE_TAG: ${{ steps.increment-git-tag.outputs.git-tag }}
+    - name: Install AWS CLI
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install --update
+        aws --version
+
+    - name: Authenticate with AWS ECR
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        AWS_ECR_REPO: ${{ secrets.AWS_ECR_REPO }}
+      run: |
+        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+        export AWS_REGION=$AWS_REGION
+        aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_ECR_REPO
+
+    - name: Build Docker Image
+      run: docker build . --file Dockerfile --tag $AWS_ECR_REPO:latest
+
+    - name: Tag Docker Image for ECR
+      run: docker tag $AWS_ECR_REPO:latest $AWS_ECR_REPO:latest
+
+    - name: Push Image to Private ECR
+      run: docker push $AWS_ECR_REPO:latest
