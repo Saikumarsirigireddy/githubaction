@@ -33,10 +33,10 @@ jobs:
         aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_ECR_REPO
 
     - name: Build Docker Image
-      run: docker build . --file Dockerfile --tag $AWS_ECR_REPO
+      run: docker build . --file Dockerfile --tag my-github:latest
 
     - name: Tag Docker Image for ECR
-      run: docker tag $AWS_ECR_REPO $AWS_ECR_REPO:$IMAGE_TAG
+      run: docker tag my-github:latest $AWS_ECR_REPO:my-github:latest-1 
 
     - name: Push Image to Private ECR
-      run: docker push $AWS_ECR_REPO:$IMAGE_TAG
+      run: docker push $AWS_ECR_REPO:my-github:latest-1 
