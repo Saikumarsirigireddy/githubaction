@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Docker Image CI/CD
 
 on:
   push:
@@ -7,12 +7,30 @@ on:
     branches: [ "main" ]
 
 jobs:
-
-  build:
-
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file dockerfile --tag my-image-name:$(date +%s)
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up AWS CLI
+      run: |
+        sudo apt-get install -y awscli
+        aws --version
+
+    - name: Authenticate with AWS ECR
+      run: |
+        aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws configure set region ${{ secrets.AWS_REGION }}
+        aws ecr get-login-password | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_REPO }}
+
+    - name: Build Docker image
+      run: docker build . --file Dockerfile --tag my-image-name:latest
+
+    - name: Tag Docker image for ECR
+      run: docker tag my-image-name:latest ${{ secrets.AWS_ECR_REPO }}/my-image-name:latest
+
+    - name: Push image to ECR
+      run: docker push ${{ secrets.AWS_ECR_REPO }}/my-image-name:latest
