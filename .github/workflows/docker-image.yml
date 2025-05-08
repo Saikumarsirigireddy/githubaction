@@ -40,3 +40,5 @@ jobs:
           echo "Pushing Image: $IMAGE_ID:$BUILD_NUMBER"
           docker push $IMAGE_ID:$BUILD_NUMBER
         done
+    - name: start lambda container using boto3
+      run: python ./containerfiles/lambda-container-run.py
