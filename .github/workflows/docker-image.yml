@@ -34,7 +34,7 @@ jobs:
       run: |
         for registry in $REGISTRIES; do
           IMAGE_ID=$registry
-          BUILD_NUMBER=${{ github.run_id }}
+          BUILD_NUMBER=${{ github.run_number }}
           echo "Tagging Image: $IMAGE_ID:$BUILD_NUMBER"
           docker tag $IMAGE_NAME $IMAGE_ID:$BUILD_NUMBER
           echo "Pushing Image: $IMAGE_ID:$BUILD_NUMBER"
