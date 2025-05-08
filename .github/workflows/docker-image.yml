@@ -2,10 +2,11 @@ name: Deploy to ECR
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
+
 env:
   IMAGE_NAME: demo-image
-  REGISTRIES: "ghcr.io/aws.ecr.registry.com/another.registry.com"
+  REGISTRIES: "ghcr.io aws.ecr.registry.com/demo-repo"  # Space-separated list of registries
 
 jobs:
   build:
@@ -23,20 +24,16 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
-
     - name: Build image
       run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "buildnumber=${GITHUB_RUN_ID}"
-    - name: Tag image
-      run: |
-         IMAGE_ID=$REGISTRIES/$IMAGE_NAME
-         BUILD_NUMBER=${{ GITHUB_RUN_ID }}
-         docker tag $IMAGE_NAME $IMAGE_ID:$BUILD_NUMBER
 
-    - name: Push image
-  run: |
-    IMAGE_ID=$REGISTRIES/$IMAGE_NAME
-    BUILD_NUMBER=${{ GITHUB_RUN_ID }}
-    docker push $IMAGE_ID:$BUILD_NUMBER
+    - name: Tag and Push image to Multiple Registries
+      run: |
+        for registry in $REGISTRIES; do
+          IMAGE_ID=$registry/$IMAGE_NAME
+          BUILD_NUMBER=${{ GITHUB_RUN_ID }}
+          echo "Tagging Image: $IMAGE_ID:$BUILD_NUMBER"
+          docker tag $IMAGE_NAME $IMAGE_ID:$BUILD_NUMBER
+          echo "Pushing Image: $IMAGE_ID:$BUILD_NUMBER"
+          docker push $IMAGE_ID:$BUILD_NUMBER
+        done
