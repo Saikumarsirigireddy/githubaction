@@ -1,5 +1,6 @@
 import boto3
 import os
+import time
 
 # Get the GitHub Run Number from the environment variable
 github_run_number = os.getenv("GITHUB_RUN_NUMBER", "latest")  # Defaults to 'latest' if not set
