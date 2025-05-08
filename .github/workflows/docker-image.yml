@@ -6,7 +6,7 @@ on:
 
 env:
   IMAGE_NAME: demo-image
-  REGISTRIES: "ghcr.io aws.ecr.registry.com/demo-repo"  # Space-separated list of registries
+  REGISTRIES: "339713111450.dkr.ecr.us-east-1.amazonaws.com/demo-repo"  # Space-separated list of registries
 
 jobs:
   build:
